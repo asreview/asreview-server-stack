@@ -2,9 +2,13 @@ DEBUG = true
 LOGIN_DISABLED = false
 SECRET_KEY = "my_very_secret_key"
 SECURITY_PASSWORD_SALT = "abCDefGH"
-SESSION_COOKIE_SECURE = true
-REMEMBER_COOKIE_SECURE = true
 SQLALCHEMY_TRACK_MODIFICATIONS = true
+
+# If you serve your app over https, set these
+# cookie-parameters to true
+# ===========================================
+SESSION_COOKIE_SECURE = false
+REMEMBER_COOKIE_SECURE = false
 
 ALLOW_ACCOUNT_CREATION = true
 ALLOW_TEAMS = false

@@ -41,7 +41,7 @@ WORKDIR /app
 COPY --from=builder /root/.local /root/.local
 
 # copy config TOML file to Image
-COPY ./Docker/auth_verified/flask_config.toml ${WORKDIR}
+COPY ./asreview-server-stack/flask_config.toml ${WORKDIR}
 
 # set env variables, this is how the TOML config is communicated
 # to the app via Gunicorn
@@ -49,14 +49,14 @@ ENV PATH=/root/.local/bin:$PATH
 ENV ASREVIEW_PATH=/app/project_folder
 ENV FLASK_CONFIGFILE=/app/flask_config.toml
 ENV FLASK_SQLALCHEMY_DATABASE_URI=${SQLALCHEMY_DATABASE_URI}
-ENV FLASK_ALLOWED_ORIGINS="[\"${FRONTEND_DOMAIN}:${FRONTEND_EXTERNAL_PORT}\"]"
+ENV FLASK_ALLOWED_ORIGINS="[\"${FRONTEND_DOMAIN}\"]"
 ENV FLASK_SESSION_COOKIE_SAMESITE=${FLASK_SESSION_COOKIE_SAMESITE}
 ENV FLASK_MAIL_PASSWORD=${FLASK_MAIL_PASSWORD}
 
 # set the working directory to the app
 WORKDIR /root/.local/lib/python3.11/site-packages/asreview/webapp
 # copy the module that allows Gunicorn to run the app
-COPY ./Docker/auth_verified/wsgi.py ${WORKDIR}
+COPY ./asreview-server-stack/wsgi.py ${WORKDIR}
 
 # create Gunicorn config file
 RUN echo "preload_app = True" > gunicorn.conf.py

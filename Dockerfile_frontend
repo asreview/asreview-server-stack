@@ -23,4 +23,4 @@ RUN REACT_APP_API_URL=${API_URL} \
 FROM nginx:alpine
 ARG API_URL
 COPY --from=builder /app/build /usr/share/nginx/html
-COPY ./Docker/auth_verified/asreview.conf /etc/nginx/conf.d/default.conf
+COPY ./asreview-server-stack/asreview.conf /etc/nginx/conf.d/default.conf
