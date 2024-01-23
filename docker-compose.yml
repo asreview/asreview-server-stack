@@ -19,7 +19,7 @@ services:
 
   backend:
     build:
-      context: ../../
+      context: ../
       dockerfile: ./asreview-server-stack/Dockerfile_backend
       args:
         FRONTEND_DOMAIN: ${FRONTEND_DOMAIN}
@@ -40,7 +40,7 @@ services:
 
   frontend:
     build:
-      context: ../../
+      context: ../
       dockerfile: ./asreview-server-stack/Dockerfile_frontend
       args:
         API_URL: ${FRONTEND_DOMAIN}:${BACKEND_EXTERNAL_PORT}/
