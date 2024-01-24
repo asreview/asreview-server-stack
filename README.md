@@ -2,7 +2,7 @@
 
 > ⚠️ Deploying Docker containers in a public environment requires careful consideration of security implications. Exposing services without proper safeguards can lead to potential security vulnerabilities, unauthorized access, and data breaches.
 
-This repository contains a recipe for building an authenticated version of the ASReview LAB application in Docker containers. It allows multiple users to access the app and create  private projects. It requires users to sign up and sign in to access the app.
+This repository contains a recipe for building an authenticated version of the ASReview LAB application in Docker containers. It allows multiple users to access the app and create private projects. It requires users to sign up and sign in to access the app.
 
 > ℹ️ Looking for a Dockerfile with ASReview only (e.g., because you are looking for a standalone app on your computer for individual use)? See https://asreview.readthedocs.io/en/stable/installation.html#install-with-docker or https://github.com/asreview/asreview/pkgs/container/asreview. 
 
@@ -13,7 +13,7 @@ If you would like to setup the ASReview application as a shared service, a more 
 For account verification, but also for the forgot-password feature, an email server is required. However, maintaining an email server can be demanding. If you want to avoid it, a third-party service like [SendGrid](https://sendgrid.com/) might be a good alternative. In this recipe, we use the SMTP Relay Service from Sendgrid: every email sent by the ASReview application will be relayed by this service. Sendgrid is free if you don't expect the application to send more than 100 emails per day. Receiving reply emails from end-users is not possible if you use the Relay service, but that might be irrelevant.
 
 In this folder, you find 7 files of interest:
-1. `.env` - An environment variable file for all relevant (secret) parameters (ports, frontend-domain, database, email, and Gunicorn related parameters)
+1. `.env` - An environment variable file for all relevant (secret) parameters (ports, frontend-domain, database, and Gunicorn related parameters)
 2. `asreview.conf` - a configuration file used by NGINX.
 3. `docker-compose.yml` - the docker compose file that will create the Docker containers.
 4. `Dockerfile_backend` - Dockerfile for the backend, installs all Python-related software, including Gunicorn, and starts the backend server.
@@ -37,7 +37,7 @@ Please be aware that the provided password is quite weak. If deploying Docker co
 
 ### Creating and running the containers
 
-From the __root__ folder of the app execute the `docker compose` command:
+From the __root__ folder of the app execute the `docker compose` command to start your docker containers in attached mode:
 
 ```
 $ docker compose -f ./docker-compose.yml up --build
@@ -53,3 +53,62 @@ The backend container is more complicated. It also uses a multi-stage Dockerfile
 Then a Gunicorn config file (`gunicorn.conf.py`) is created on the fly which sets the server port and the preferred amount of workers. After that, a second file is created: an executable shell script instructing the ASReview app to create the necessary tables in the database and start the Gunicorn server using the configuration described in the previous file.
 
 Note that a user of this recipe only has to change the necessary values in the `.env` file and execute the `docker compose` command to spin up an ASReview service, without an encrypted HTTP protocol!
+
+### Deploying on Digital Ocean
+
+The following section describes how to deploy the authenticated application with verification on [Digital Ocean](https://www.digitalocean.com/). During the process a number of gotchas and solutions are explained. The deployment is done on a bare Droplet running Ubuntu 22.04 with 1 CPU, 2 GB memory and a 50 GB SSD disk. Root access is assumed.
+
+First consideration is a (sub)domain name. If you have one, make sure the domain name points to the IP address of the Droplet.
+
+Ssh into your Droplet, update the list of packages and install the software for Docker:
+```
+$ sudo apt-get update
+$ for pkg in docker.io docker-doc docker-compose docker-compose-v2 \
+    podman-docker containerd runc; do sudo apt-get remove $pkg; done
+$ sudo apt-get install ca-certificates curl gnupg
+$ sudo install -m 0755 -d /etc/apt/keyrings
+$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+$ sudo chmod a+r /etc/apt/keyrings/docker.gpg
+$ echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+$ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+and enter 'Y'. If you get questions about restarting services just select OK. Verify if all is up and running by creating a test container:
+```
+$ sudo docker run hello-world
+```
+If all is well a message 'Hello from Docker' should appear with other information. Verify if Docker Compose is installed:
+```
+$ docker compose version
+```
+If this fails, install Docker Compose with:
+```
+$ sudo apt-get install docker-compose-plugin
+```
+Next up are ports. It's best practice to engage the firewall and open the ports we need. In this manual the frontend will run on port 8080 (deviating from the normal port 80), and the backend runs on 8081.
+```
+$ sudo ufw default allow outgoing
+$ sudo ufw default deny incoming
+$ sudo ufw allow ssh
+$ sudo ufw allow 8080
+$ sudo ufw allow 8081
+$ sudo ufw enable
+```
+Clone the ASReview application in the root folder and ensure all tags are present:
+```
+$ cd
+$ git clone https://github.com/asreview/asreview.git
+$ cd asreview
+$ git tag -l
+```
+Clone the ASReview Server Stack extension in the `asreview` folder: 
+```
+$ git clone https://github.com/asreview/asreview-server-stack.git
+```
+Next up is configuring the `.env` file in `~/asreview/asreview-server-stack`.
+
+
+
+
