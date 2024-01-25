@@ -14,8 +14,9 @@ ALLOW_ACCOUNT_CREATION = true
 ALLOW_TEAMS = false
 EMAIL_VERIFICATION = false
 
-# When using a mail server for email verification:
-# ================================================
+# When using a (SendGrid) mail server for email
+# verification and forgotten passwords:
+# =============================================
 # MAIL_SERVER = "smtp.sendgrid.net"
 # MAIL_PORT = 465
 # MAIL_USE_TLS = false
