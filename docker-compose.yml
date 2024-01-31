@@ -19,10 +19,10 @@ services:
 
   backend:
     build:
-      context: ../../
-      dockerfile: ./Docker/auth_verified/Dockerfile_backend
+      context: ../
+      dockerfile: ./asreview-server-stack/Dockerfile_backend
       args:
-        FRONTEND_DOMAIN: ${FRONTEND_DOMAIN:-http://localhost}
+        FRONTEND_DOMAIN: ${FRONTEND_DOMAIN}
         FLASK_SESSION_COOKIE_SAMESITE: ${FLASK_SESSION_COOKIE_SAMESITE:-Lax}
         BACKEND_INTERNAL_PORT: ${BACKEND_INTERNAL_PORT}
         FRONTEND_EXTERNAL_PORT: ${FRONTEND_EXTERNAL_PORT}
@@ -40,10 +40,10 @@ services:
 
   frontend:
     build:
-      context: ../../
-      dockerfile: ./Docker/auth_verified/Dockerfile_frontend
+      context: ../
+      dockerfile: ./asreview-server-stack/Dockerfile_frontend
       args:
-        API_URL: http://localhost:${BACKEND_EXTERNAL_PORT}/
+        API_URL: ${FRONTEND_DOMAIN}:${BACKEND_EXTERNAL_PORT}/
     ports:
       - "${FRONTEND_EXTERNAL_PORT}:${FRONTEND_INTERNAL_PORT}"
 
