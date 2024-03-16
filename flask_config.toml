@@ -1,4 +1,4 @@
-DEBUG = true
+DEBUG = false
 LOGIN_DISABLED = false
 SECRET_KEY = "my_very_secret_key"
 SECURITY_PASSWORD_SALT = "abCDefGH"
