@@ -1,8 +1,8 @@
 version: '3.9'
 services:
 
-  asreview_database:
-    container_name: asreview_database
+  asreview-database:
+    container_name: asreview-database
     image: postgres
     restart: always
     environment:
@@ -14,39 +14,74 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    volumes:
-      - auth_verified_database:/var/lib/postgresql/data
+    # volumes:
+    #   - auth_verified_database:/var/lib/postgresql/data
 
-  backend:
+  asreview-app-back-end:
+
+    # replace the build by the image once the image is updated at asreview/asreview
+    container_name: asreview-app-back-end
+    # image: ghcr.io/asreview/asreview:v1.6rc0
     build:
-      context: ../
-      dockerfile: ./asreview-server-stack/Dockerfile_backend
-      args:
-        FRONTEND_DOMAIN: ${FRONTEND_DOMAIN}
-        FLASK_SESSION_COOKIE_SAMESITE: ${FLASK_SESSION_COOKIE_SAMESITE:-Lax}
-        BACKEND_INTERNAL_PORT: ${BACKEND_INTERNAL_PORT}
-        FRONTEND_EXTERNAL_PORT: ${FRONTEND_EXTERNAL_PORT}
-        FLASK_MAIL_PASSWORD: ${FLASK_MAIL_PASSWORD:-password}
-        WORKERS: ${WORKERS:-1}
-        SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@asreview_database:5432/${POSTGRES_DB}"
-        CREATE_TABLES: "asreview auth-tool create-db --db-uri=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@asreview_database:5432/${POSTGRES_DB}"
-    ports:
-      - "${BACKEND_EXTERNAL_PORT}:${BACKEND_INTERNAL_PORT}"
+      context: .
+      dockerfile: Dockerfile
     depends_on:
-      asreview_database:
-        condition: service_healthy
-    volumes:
-      - auth_verified_project_folder:/app/project_folder
-
-  frontend:
-    build:
-      context: ../
-      dockerfile: ./asreview-server-stack/Dockerfile_frontend
-      args:
-        API_URL: ${FRONTEND_DOMAIN}:${BACKEND_EXTERNAL_PORT}/
+      - asreview-database
+    # restart: always
+    environment:
+      - ASREVIEW_LAB_ALLOW_ACCOUNT_CREATION=true
+    #   - ASREVIEW_LAB_SQLALCHEMY_DATABASE_URI=${POSTGRES_DB}
     ports:
-      - "${FRONTEND_EXTERNAL_PORT}:${FRONTEND_INTERNAL_PORT}"
+      - '8010:8010'
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl --silent --fail localhost:8010/flask-health-check || exit 1"]
+    #   interval: 10s
+    #   timeout: 10s
+    #   retries: 3
+    entrypoint: []
+    command: gunicorn -w 1 -t 60 -b 0.0.0.0:8010 "asreview.webapp.app:create_app()"
 
-volumes:
-  auth_verified_project_folder:
-  auth_verified_database:
+  asreview-app-front-end:
+
+    # replace the build by the image once the image is updated at asreview/asreview
+    container_name: asreview-app-front-end
+    # image: ghcr.io/asreview/asreview:v1.6rc0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - asreview-database
+      - asreview-app-back-end
+    # restart: always
+    environment:
+      - ASREVIEW_LAB_ALLOW_ACCOUNT_CREATION=true
+      # - ASREVIEW_LAB_API_URL="http://asreview-database:8010"  # not needed maybe, use NGinx to proxy /api to 8010
+    #   - ASREVIEW_LAB_SQLALCHEMY_DATABASE_URI=${POSTGRES_DB}
+    ports:
+      - '8000:8000'
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl --silent --fail localhost:8000/flask-health-check || exit 1"]
+    #   interval: 10s
+    #   timeout: 10s
+    #   retries: 3
+    entrypoint: []
+    command: gunicorn -w 1 -t 60 -b 0.0.0.0:8000 "asreview.webapp.app:create_app()"
+
+  asreview-nginx:
+    container_name: asreview-nginx
+    image: nginx:1.21.3
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx/asreview.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - asreview-app-front-end
+      - asreview-app-back-end
+    # restart: always
+    # healthcheck:
+    #   test: ["CMD-SHELL", "curl --silent --fail localhost:80 || exit 1"]
+    #   interval: 10s
+    #   timeout: 10s
+    #   retries: 3
+
+    command: [nginx, '-g', 'daemon off;']

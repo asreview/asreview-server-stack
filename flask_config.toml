@@ -1,5 +1,7 @@
-DEBUG = true
-LOGIN_DISABLED = false
+# DEBUG = true
+# LOGIN_DISABLED = false  # DEFAULT CASE in v1.6, REMOVE
+
+
 SECRET_KEY = "my_very_secret_key"
 SECURITY_PASSWORD_SALT = "abCDefGH"
 SQLALCHEMY_TRACK_MODIFICATIONS = true
