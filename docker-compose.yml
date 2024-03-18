@@ -24,28 +24,25 @@ services:
       database:
         condition: service_healthy
     volumes:
-      - static-content:/root/.local/lib/python3.11/site-packages/asreview/webapp/build
       - project-folder:/app/project_folder
+      - ./flask_config.toml:/app/flask_config.toml
     environment:
       - WORKERS=${WORKERS}
-      - API_URL=${DOMAIN}:666/
+      - ASREVIEW_LAB_API_URL=${DOMAIN}:${BACKEND_EXTERNAL_PORT}/
       - ASREVIEW_LAB_CONFIG_PATH=./flask_config.toml
-      - ASREVIEW_LAB_SESSION_COOKIE_SAMESITE="Lax"
       - ASREVIEW_LAB_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     ports:
-      - 666:5006
+      - ${BACKEND_EXTERNAL_PORT}:5006
 
   server:
     image: nginx
     ports:
-      - 8080:80
+      - ${FRONTEND_EXTERNAL_PORT}:80
     volumes:
       - ./asreview.conf:/etc/nginx/nginx.conf
-      - static-content:/home
     depends_on:
       - asreview
 
 volumes:
-  static-content:
   project-folder:
   database-volume:

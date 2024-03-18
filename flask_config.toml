@@ -3,6 +3,7 @@ LOGIN_DISABLED = false
 SECRET_KEY = "my_very_secret_key"
 SECURITY_PASSWORD_SALT = "abCDefGH"
 SQLALCHEMY_TRACK_MODIFICATIONS = true
+SESSION_COOKIE_SAMESITE="Lax"
 
 # If you serve your app over https, set these
 # cookie-parameters to true
