@@ -29,7 +29,7 @@ services:
     environment:
       - WORKERS=${WORKERS}
       - ASREVIEW_LAB_API_URL=${DOMAIN}:${BACKEND_EXTERNAL_PORT}/
-      - ASREVIEW_LAB_CONFIG_PATH=./flask_config.toml
+      - ASREVIEW_LAB_CONFIG_PATH=/app/flask_config.toml
       - ASREVIEW_LAB_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     ports:
       - ${BACKEND_EXTERNAL_PORT}:5006
