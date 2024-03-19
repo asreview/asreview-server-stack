@@ -15,12 +15,13 @@ ALLOW_ACCOUNT_CREATION = true
 ALLOW_TEAMS = false
 EMAIL_VERIFICATION = false
 
-# When using a (SendGrid) mail server for email
-# verification and forgotten passwords:
+# When email verification is used, uncomment the following
+# variable and add the password of the email server.
 # =============================================
 # MAIL_SERVER = "smtp.sendgrid.net"
 # MAIL_PORT = 465
 # MAIL_USE_TLS = false
 # MAIL_USE_SSL = true
 # MAIL_USERNAME = "apikey"
+# MAIL_PASSWORD="password"
 # MAIL_DEFAULT_SENDER = "no_reply@example.org"
