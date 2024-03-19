@@ -42,7 +42,7 @@ interest:
 - `docker-compose.yml` - the Docker Compose file that will create the Docker
   containers
 - `Dockerfile` - Extends default ASReview Dockerfile
-- `flask_config.toml` - the ASReview LAB config file with, for example,
+- `asreview_config.toml` - the ASReview LAB config file with, for example,
   authentication options and email server configuration.
 - `init.sh` - a shell script to launch the server(s) with Gunicorn.
 
@@ -63,7 +63,7 @@ For account verification, but also for the forgot-password feature, an email
 server is required. However, maintaining an email server can be demanding. If
 you want to avoid it, a third-party service like
 [SendGrid](https://sendgrid.com/) might be a good alternative. Email server
-settings can be set in the `flask_config.toml` file.
+settings can be set in the `asreview_config.toml` file.
 
 #### SendGrid
 
@@ -76,7 +76,7 @@ end-users is not possible if you use the Relay service.
 Create an account at Sendgrid. Sign in and click on "Email API" in the menu and
 subsequently click on the "Integration Guide" link. Then, choose "SMTP Relay",
 create an API key and copy the resulting settings (Server, Ports, Username and
-Password) in your `flask_config.toml` file. It's important to continue checking
+Password) in your `asreview_config.toml` file. It's important to continue checking
 the "I've updated my settings" checkbox when it's visible **and** click on the
 "Next: verify Integration" button before you run the Docker containers.
 
@@ -232,6 +232,6 @@ another server.
 Finally, this setup does not support encryption. Its purpose is to deploy the
 application as easy and quickly as possible. Dealing with certificates will make
 things more complex. Since the unencrypted HTTP protocol is used, in
-`flask_config.toml` the `SESSION_COOKIE_SECURE` and `REMEMBER_COOKIE_SECURE`
+`asreview_config.toml` the `SESSION_COOKIE_SECURE` and `REMEMBER_COOKIE_SECURE`
 parameters are set to `false`. If the setup is tweaked to work with
 certificates, it is obviously best practice to set the values to `true`.
