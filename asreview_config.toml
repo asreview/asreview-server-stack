@@ -1,26 +1,32 @@
 DEBUG = false
 
-## enable authentication, enabled by default since asreview version 1.6+
-# LOGIN_DISABLED = false
-
-SECRET_KEY = "my_very_secret_key"
-SECURITY_PASSWORD_SALT = "abCDefGH"
 SQLALCHEMY_TRACK_MODIFICATIONS = true
 SESSION_COOKIE_SAMESITE="Lax"
 
-# If you serve your app over https, set these
-# cookie-parameters to true
-# ===========================================
-SESSION_COOKIE_SECURE = false
-REMEMBER_COOKIE_SECURE = false
+# Security
+# ========
+
+SECRET_KEY = "my_very_secret_key"
+
+## If you serve your app over https, set these cookie-parameters to true
+# SESSION_COOKIE_SECURE = true
+# REMEMBER_COOKIE_SECURE = true
+
+
+# Authentication
+# ==============
+
+## enable authentication, enabled by default since asreview version 1.6+
+# LOGIN_DISABLED = false
 
 ALLOW_ACCOUNT_CREATION = true
-ALLOW_TEAMS = false
-EMAIL_VERIFICATION = false
+SECURITY_PASSWORD_SALT = "abCDefGH"
+# EMAIL_VERIFICATION = true
 
-# When email verification is used, uncomment the following
-# variable and add the password of the email server.
-# =============================================
+
+# Email server
+# ============
+
 # MAIL_SERVER = "smtp.sendgrid.net"
 # MAIL_PORT = 465
 # MAIL_USE_TLS = false
@@ -28,3 +34,9 @@ EMAIL_VERIFICATION = false
 # MAIL_USERNAME = "apikey"
 # MAIL_PASSWORD="password"
 # MAIL_DEFAULT_SENDER = "no_reply@example.org"
+
+
+# ASReview functionality
+# ======================
+
+ALLOW_TEAMS = false
