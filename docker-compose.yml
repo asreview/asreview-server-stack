@@ -25,11 +25,11 @@ services:
         condition: service_healthy
     volumes:
       - project-folder:/app/project_folder
-      - ./flask_config.toml:/app/flask_config.toml
+      - ./asreview_config.toml:/app/asreview_config.toml
     environment:
       - WORKERS=${WORKERS}
       - ASREVIEW_LAB_API_URL=/
-      - ASREVIEW_LAB_CONFIG_PATH=/app/flask_config.toml
+      - ASREVIEW_LAB_CONFIG_PATH=/app/asreview_config.toml
       - ASREVIEW_LAB_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     ports:
       - ${BACKEND_EXTERNAL_PORT}:5006
