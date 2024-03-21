@@ -17,9 +17,7 @@ services:
       - database-volume:/var/lib/postgresql/data
 
   asreview:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: "ghcr.io/asreview/asreview:v1.6rc3"
     depends_on:
       database:
         condition: service_healthy
@@ -27,12 +25,15 @@ services:
       - project-folder:/app/project_folder
       - ./asreview_config.toml:/app/asreview_config.toml
     environment:
-      - WORKERS=${WORKERS}
       - ASREVIEW_LAB_API_URL=/
       - ASREVIEW_LAB_CONFIG_PATH=/app/asreview_config.toml
       - ASREVIEW_LAB_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     ports:
       - ${BACKEND_EXTERNAL_PORT}:5006
+    entrypoint: []
+    command: >
+      bash -c "asreview auth-tool create-db
+      && gunicorn -w ${WORKERS} -b \"0.0.0.0:5006\" \"asreview.webapp.app:create_app()\""
 
   server:
     image: nginx
