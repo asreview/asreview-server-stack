@@ -30,7 +30,7 @@ documentation on [Deploying to
 Production](https://flask.palletsprojects.com/en/3.0.x/deploying/) for more
 information.
 
-ASReview Server Stack consists of 3 containers: a database (Postgress), an
+ASReview Server Stack consists of 3 containers: a database (PostgreSQL), an
 ASReview, and a NGINX container. [Docker
 Compose](https://docs.docker.com/compose/) is used to run and serve this
 multi-container application. In this folder, you find the following files of
@@ -41,11 +41,8 @@ interest:
 - `asreview.conf` - a NGINX configuration file
 - `docker-compose.yml` - the Docker Compose file that will create the Docker
   containers
-- `Dockerfile` - Extends default ASReview Dockerfile
 - `asreview_config.toml` - the ASReview LAB config file with, for example,
   authentication options and email server configuration.
-- `init.sh` - a shell script to launch the server(s) with Gunicorn.
-
 
 ### Running the containers
 
@@ -60,9 +57,8 @@ $ docker compose up
 ### Email server
 
 For account verification, but also for the forgot-password feature, an email
-server is required. However, maintaining an email server can be demanding. If
-you want to avoid it, a third-party service like
-[SendGrid](https://sendgrid.com/) might be a good alternative. Email server
+server is required. However, maintaining an email server can be demanding. This can be avoided by using a third-party service like
+[SendGrid](https://sendgrid.com/). Email server
 settings can be set in the `asreview_config.toml` file.
 
 #### SendGrid
@@ -87,7 +83,7 @@ the menu, then on "Sender Authentication" and follow instructions.
 ### Parameters in the .env file
 
 The `.env` file contains parameters to deploy all containers. All variables that
-end with the `_PORT` suffix refer to the containers' internal and external
+end with the `_PORT` suffix refer to the containers' external
 network ports. The prefix of these variables explains for which container they
 are used. Note that the external port of the frontend container, the container
 that will be directly used by the end-user, is 8080 and not 80. Change this to
@@ -221,7 +217,7 @@ and the protocol that are used in the browser. Does it use http instead of
 https, and is the correct port being used (`http://<IP-address>:8080`)? If
 that's the case, verify if the designated ports are really open on the Droplet.
 
-In the `.env` the `SESSION_COOKIE_SAMESITE` parameter is set to the recommended
+In the `asreview_config.toml` the `SESSION_COOKIE_SAMESITE` parameter is set to the recommended
 "Lax" value. In this Docker setup, it is assumed that both the backend and
 frontend can be accessed using the same domain name or IP address. When this is
 not the case, don't forget to set the value of `SESSION_COOKIE_SAMESITE` to the
