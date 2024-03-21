@@ -102,9 +102,9 @@ password, respectively. The `_DB` variable specifies the database name.
   database user to something less predictable and strengthen the password for
   enhanced security.
 
-### Deploying to cloud provider
+## Deploying to cloud provider
 
-#### Digital Ocean
+### Digital Ocean
 
 The following section describes how to deploy the authenticated application with
 email verification on [Digital Ocean](https://www.digitalocean.com/). The
@@ -207,7 +207,7 @@ containers and spin them up again in detached mode:
 docker compose up -d
 ```
 
-#### Trouble Shooting
+### Trouble Shooting
 
 If the containers are built and running, but the application is unresponsive,
 consider the following guidelines:
@@ -227,7 +227,160 @@ another server.
 
 Finally, this setup does not support encryption. Its purpose is to deploy the
 application as easy and quickly as possible. Dealing with certificates will make
-things more complex. Since the unencrypted HTTP protocol is used, in
+things more complex (see following section). Since the unencrypted HTTP protocol is used, in
 `asreview_config.toml` the `SESSION_COOKIE_SECURE` and `REMEMBER_COOKIE_SECURE`
 parameters are set to `false`. If the setup is tweaked to work with
 certificates, it is obviously best practice to set the values to `true`.
+
+## Upgrading security: migrate to HTTPS
+
+This section assumes that all the steps outlined in the preceding sections have been completed.
+
+The following extra steps are required to run the ASReview application with HTTPS:
+* Open up port 443 of the server.
+* A domain name and certificates for this domain name.
+* Change the Docker configuration.
+
+### Ports
+
+In the sections above port 8080 was used for demonstrational purposes. For a secured application it's easier to stick with the default web ports 80 and 443. Make sure these ports are open. Additionally, ensure that the port to which the backend listens is also open. By default, in the `.env` file, that is port 8081.
+
+On Ubuntu this can be accomplished withe the following commands:
+```
+$ sudo ufw allow 80
+$ sudo ufw allow 443
+$ sudo ufw allow 8081
+```
+
+### Domain name and certificates
+
+The insecure version of the ASReview web application functions without a domain name; an IP address suffices. However, for a secure version, having a domain name is highly advisable. Ensure that there is an A record in the DNS linking the domain name to the server's IP address.
+
+A detailed explanation of domain certificates and how to obtain them falls beyond the document's focus. Usually an IT-department provides them. An alternative method would be to create self-signed certificates which is briefly explained below.
+
+On the server, install [Certbot](https://certbot.eff.org/). The installation details differ per operating system, but the Certbot website allows customers to specify their system to help with the installation procedure. Once installed, shutdown any webserver that is running on the server and issue the following command:
+```
+$ sudo certbot certonly --standalone
+```
+Provide a necessary email address, agree with the terms of service and enter the domain name when prompted. After completion, the Certbot application produces 2 important files: `fullchain.pem` and `privkey.pem`. On a Linux server these files can typically be found under `/etc/letsencrypt/live/<DOMAIN_NAME>/`. Copy both files into the `asreview-server-stack` folder.
+
+### Update Docker configuration
+
+Numerous minor adjustments need to be made in almost every file within the asreview-server-stack directory. In alphabetical order:
+
+#### 1. .env
+Make sure the DOMAIN parameter points to a domain name and uses the 'https' protocol, and the FRONTEND_EXTERNAL_PORT is set to 80.
+```
+DOMAIN=https://<DOMAIN NAME>
+FRONTEND_EXTERNAL_PORT=80
+```
+
+#### 2. asreview_config.toml
+Set the following parameters to `true`:
+```
+SESSION_COOKIE_SECURE = true
+REMEMBER_COOKIE_SECURE = true
+```
+
+#### 3. asreview.conf
+Substitute the original contents with:
+```
+events {
+  worker_connections        1024;
+}
+
+http {
+
+  proxy_cache_path          /var/cache/nginx/asreview keys_zone=asreview:20m max_size=500m;
+
+  upstream asreview_container {
+    server                  asreview:5006;
+  }
+
+  server {
+    listen                  [::]:80;
+    listen                  80;
+    return                  301 https://$http_host$request_uri;
+  }
+
+  server {
+    listen                  [::]:443 ssl;
+    listen                  443 ssl;
+    http2                   on;
+
+    ssl_certificate         /etc/pemfiles/fullchain.pem;
+    ssl_certificate_key     /etc/pemfiles/privkey.pem;
+
+    gzip                    on;
+    gzip_http_version       1.0;
+    gzip_comp_level         2;
+    gzip_proxied            any;
+    gzip_types              application/javascript; # our css file is small and cached by browser
+
+    proxy_set_header        Host $http_host;
+    proxy_set_header        X-Real-IP $remote_addr;
+    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_cache_key         $scheme://$host$uri$is_args$query_string;
+    
+    location / {
+      proxy_pass            https://asreview_container;
+    }
+
+    location = /favicon.ico {
+      proxy_pass            https://asreview_container;
+      proxy_cache           asreview;
+      proxy_cache_valid     200 100d;
+      proxy_ignore_headers  Cache-Control;
+
+      add_header            X-Proxy-Cache $upstream_cache_status;
+    }
+
+    location ^~ /static {
+      proxy_pass            https://asreview_container;
+      proxy_cache           asreview;
+      proxy_cache_valid     200 100d;
+      proxy_ignore_headers  Cache-Control;
+
+      add_header            X-Proxy-Cache $upstream_cache_status;
+    }
+  }
+}
+
+```
+
+#### 4. docker-compose.yml
+The certificates must be made accessible in the server and asreview container, ports need to be adjusted and Gunicorn has to be started with the certificate files.
+
+In the `asreview` container add the certificate files under `volume`:
+```
+    volumes:
+      - project-folder:/app/project_folder
+      - ./asreview_config.toml:/app/asreview_config.toml
+      - ./fullchain.pem:/app/fullchain.pem
+      - ./privkey.pem:/app/privkey.pem
+```
+And change the value of the `command` key into:
+```
+    command: >
+      bash -c "asreview auth-tool create-db
+      && gunicorn --certfile /app/fullchain.pem --keyfile /app/privkey.pem -w ${WORKERS}
+      -b \"0.0.0.0:5006\" \"asreview.webapp.app:create_app()\"" # THIS
+```
+
+In the `server` container explicitly set the `ports` to:
+```
+    ports:
+      - 80:80
+      - 443:443
+```
+Note that unsecured data traffic to port 80 will be redirected to the secured application.
+
+Make the certificates available for `asreview.conf` by adding them under the `volume` key:
+```
+    volumes:
+      - ./asreview.conf:/etc/nginx/nginx.conf
+      - ./fullchain.pem:/etc/pemfiles/fullchain.pem
+      - ./privkey.pem:/etc/pemfiles/privkey.pem
+``` 
+
+(Re)Build and restart the containers. The application now utilizes HTTPS.
