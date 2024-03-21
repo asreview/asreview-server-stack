@@ -1,8 +1,7 @@
 version: '3.9'
 services:
 
-  asreview_database:
-    container_name: asreview_database
+  database:
     image: postgres
     restart: always
     environment:
@@ -15,38 +14,36 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - auth_verified_database:/var/lib/postgresql/data
+      - database-volume:/var/lib/postgresql/data
 
-  backend:
-    build:
-      context: ../
-      dockerfile: ./asreview-server-stack/Dockerfile_backend
-      args:
-        FRONTEND_DOMAIN: ${FRONTEND_DOMAIN}
-        FLASK_SESSION_COOKIE_SAMESITE: ${FLASK_SESSION_COOKIE_SAMESITE:-Lax}
-        BACKEND_INTERNAL_PORT: ${BACKEND_INTERNAL_PORT}
-        FRONTEND_EXTERNAL_PORT: ${FRONTEND_EXTERNAL_PORT}
-        FLASK_MAIL_PASSWORD: ${FLASK_MAIL_PASSWORD:-password}
-        WORKERS: ${WORKERS:-1}
-        SQLALCHEMY_DATABASE_URI: "postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@asreview_database:5432/${POSTGRES_DB}"
-        CREATE_TABLES: "asreview auth-tool create-db --db-uri=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@asreview_database:5432/${POSTGRES_DB}"
-    ports:
-      - "${BACKEND_EXTERNAL_PORT}:${BACKEND_INTERNAL_PORT}"
+  asreview:
+    image: "ghcr.io/asreview/asreview:v1.6"
     depends_on:
-      asreview_database:
+      database:
         condition: service_healthy
     volumes:
-      - auth_verified_project_folder:/app/project_folder
-
-  frontend:
-    build:
-      context: ../
-      dockerfile: ./asreview-server-stack/Dockerfile_frontend
-      args:
-        API_URL: ${FRONTEND_DOMAIN}:${BACKEND_EXTERNAL_PORT}/
+      - project-folder:/app/project_folder
+      - ./asreview_config.toml:/app/asreview_config.toml
+    environment:
+      - ASREVIEW_LAB_API_URL=/
+      - ASREVIEW_LAB_CONFIG_PATH=/app/asreview_config.toml
+      - ASREVIEW_LAB_SQLALCHEMY_DATABASE_URI=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}
     ports:
-      - "${FRONTEND_EXTERNAL_PORT}:${FRONTEND_INTERNAL_PORT}"
+      - ${BACKEND_EXTERNAL_PORT}:5006
+    entrypoint: []
+    command: >
+      bash -c "asreview auth-tool create-db
+      && gunicorn -w ${WORKERS} -b \"0.0.0.0:5006\" \"asreview.webapp.app:create_app()\""
+
+  server:
+    image: nginx
+    ports:
+      - ${FRONTEND_EXTERNAL_PORT}:80
+    volumes:
+      - ./asreview.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - asreview
 
 volumes:
-  auth_verified_project_folder:
-  auth_verified_database:
+  project-folder:
+  database-volume:
