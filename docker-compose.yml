@@ -17,12 +17,12 @@ services:
       - database-volume:/var/lib/postgresql/data
 
   asreview:
-    image: "ghcr.io/asreview/asreview:v1.6.1"
+    image: "ghcr.io/asreview/asreview:v1.6.2"
     depends_on:
       database:
         condition: service_healthy
     volumes:
-      - project-folder:/app/project_folder
+      - project-folder:/project_folder
       - ./asreview_config.toml:/app/asreview_config.toml
     environment:
       - ASREVIEW_LAB_API_URL=/
