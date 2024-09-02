@@ -17,7 +17,7 @@ services:
       - database-volume:/var/lib/postgresql/data
 
   asreview:
-    image: "ghcr.io/asreview/asreview:v1.6.2"
+    image: "ghcr.io/asreview/asreview:v1.6.3"
     depends_on:
       database:
         condition: service_healthy
