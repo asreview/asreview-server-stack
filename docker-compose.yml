@@ -22,7 +22,7 @@ services:
       database:
         condition: service_healthy
     volumes:
-      - project-folder:/app/project_folder
+      - project-folder:/project_folder
       - ./asreview_config.toml:/app/asreview_config.toml
     environment:
       - ASREVIEW_LAB_API_URL=/
