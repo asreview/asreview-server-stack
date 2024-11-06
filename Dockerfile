@@ -6,7 +6,7 @@ WORKDIR /app
 # git is used by versioneer to define the project version
 COPY . /app
 RUN apt-get update \
-    && pip3 install --user asreview==2.0a1
+    && pip3 install --user asreview==2.0a2
     && pip3 install --user gunicorn \
     && pip3 install --user . \
     && pip3 install --user asreview-datatools asreview-insights asreview-makita asreview-wordcloud
