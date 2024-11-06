@@ -33,7 +33,8 @@ services:
     entrypoint: []
     command: >
       bash -c "asreview auth-tool create-db
-      && gunicorn -w ${WORKERS} -b \"0.0.0.0:5006\" \"asreview.webapp.app:create_app()\""
+      && asreview task-manager
+      & gunicorn -w ${WORKERS} -b \"0.0.0.0:5006\" \"asreview.webapp.app:create_app()\""
 
   server:
     image: nginx
