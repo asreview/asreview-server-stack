@@ -8,7 +8,7 @@ COPY . /app
 RUN apt-get update \
     && pip install --upgrade pip \
     && pip3 install --user --no-cache-dir \
-        asreview==2.0a3 \
+        asreview==2.0a4 \
         gunicorn
         
 # Second stage
