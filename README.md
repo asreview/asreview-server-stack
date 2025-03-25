@@ -76,9 +76,13 @@ Password) in your `asreview_config.toml` file. It's important to continue checki
 the "I've updated my settings" checkbox when it's visible **and** click on the
 "Next: verify Integration" button before you run the Docker containers.
 
-It is also important to verify the reply address of any email the application
+It is important to verify the reply address of any email the application
 will send. While being logged in on the SendGrid website, click on "Settings" in
 the menu, then on "Sender Authentication" and follow instructions.
+
+Please note that sending emails via SendGrid with SSL requires port 465 to be
+open for outbound connections on your server. Ensure that your firewall is configured
+appropriately.
 
 ### Parameters in the .env file
 
