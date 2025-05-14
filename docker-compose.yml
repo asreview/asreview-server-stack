@@ -17,7 +17,7 @@ services:
       - database-volume:/var/lib/postgresql/data
 
   asreview:
-    image: "ghcr.io/asreview/asreview:v1.6.3"
+    build: .
     depends_on:
       database:
         condition: service_healthy
@@ -33,7 +33,8 @@ services:
     entrypoint: []
     command: >
       bash -c "asreview auth-tool create-db
-      && gunicorn -w ${WORKERS} -b \"0.0.0.0:5006\" \"asreview.webapp.app:create_app()\""
+      && asreview task-manager
+      & gunicorn -w ${WORKERS} -b \"0.0.0.0:5006\" \"asreview.webapp.app:create_app()\""
 
   server:
     image: nginx

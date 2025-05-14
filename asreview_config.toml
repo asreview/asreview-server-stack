@@ -1,6 +1,5 @@
 DEBUG = false
 
-SQLALCHEMY_TRACK_MODIFICATIONS = true
 SESSION_COOKIE_SAMESITE="Lax"
 
 # Security
@@ -34,9 +33,3 @@ SECURITY_PASSWORD_SALT = "abCDefGH"
 # MAIL_USERNAME = "apikey"
 # MAIL_PASSWORD="password"
 # MAIL_DEFAULT_SENDER = "no_reply@example.org"
-
-
-# ASReview functionality
-# ======================
-
-ALLOW_TEAMS = false
