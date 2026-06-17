@@ -2,9 +2,7 @@
 FROM python:3.11-slim AS builder
 WORKDIR /app
 
-# Copy and build asreview
-# git is used by versioneer to define the project version
-COPY . /app
+# Install asreview and its server dependencies from PyPI
 RUN apt-get update \
     && pip install --upgrade pip \
     && pip3 install --user --no-cache-dir \
@@ -29,6 +27,6 @@ COPY --from=builder /root/.local /root/.local
 ENV ASREVIEW_LAB_HOST=0.0.0.0
 ENV PATH=/root/.local/bin:$PATH
 ENV ASREVIEW_PATH=/project_folder
-EXPOSE 5000
+EXPOSE 5006
 
 ENTRYPOINT ["asreview"]
